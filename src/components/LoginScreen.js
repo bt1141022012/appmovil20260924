@@ -72,6 +72,7 @@ export default function LoginScreen({ onLogin }) {
         telefono: telefono.trim(),
         login: login.trim(),
         clave: clave.trim(),
+        rolId: 2,
       });
 
       clearForm();
