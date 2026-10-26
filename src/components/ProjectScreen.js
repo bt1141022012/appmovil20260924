@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -9,7 +10,8 @@ import {
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 
-import { apiClient, getAuthHeaders } from '../services/api';
+import { fetchCategories } from '../services/categoryService';
+import { deleteProject, fetchProjects, saveProject } from '../services/projectService';
 
 const emptyProject = {
   titulo: '',
@@ -27,10 +29,7 @@ export default function ProjectScreen({ token, onBack }) {
 
   const loadCategories = async () => {
     try {
-      const response = await apiClient.get('/api/categorias/lista', {
-        headers: getAuthHeaders(token),
-      });
-      const fetchedCategories = response.data || [];
+      const fetchedCategories = await fetchCategories(token);
       setCategories(fetchedCategories);
 
       if (fetchedCategories.length > 0 && !form.categoriaId) {
@@ -43,10 +42,7 @@ export default function ProjectScreen({ token, onBack }) {
 
   const loadProjects = async () => {
     try {
-      const response = await apiClient.get('/api/proyectos/lista', {
-        headers: getAuthHeaders(token),
-      });
-      setProjects(response.data || []);
+      setProjects(await fetchProjects(token));
     } catch (error) {
       Alert.alert('Error', 'No se pudieron cargar los proyectos.');
     }
@@ -85,15 +81,7 @@ export default function ProjectScreen({ token, onBack }) {
         categoriaId,
       };
 
-      if (editingId) {
-        await apiClient.put(`/api/proyectos/${editingId}`, { id: editingId, ...payload }, {
-          headers: getAuthHeaders(token),
-        });
-      } else {
-        await apiClient.post('/api/proyectos', payload, {
-          headers: getAuthHeaders(token),
-        });
-      }
+      await saveProject(payload, editingId, token);
 
       setForm(emptyProject);
       setEditingId(null);
@@ -117,9 +105,7 @@ export default function ProjectScreen({ token, onBack }) {
 
   const handleDelete = async (projectId) => {
     try {
-      await apiClient.delete(`/api/proyectos/${projectId}`, {
-        headers: getAuthHeaders(token),
-      });
+      await deleteProject(projectId, token);
       if (editingId === projectId) {
         setEditingId(null);
         setForm(emptyProject);
@@ -140,6 +126,7 @@ export default function ProjectScreen({ token, onBack }) {
         <View style={{ width: 60 }} />
       </View>
 
+      <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>{editingId ? 'Editar proyecto' : 'Nuevo proyecto'}</Text>
 
@@ -215,8 +202,10 @@ export default function ProjectScreen({ token, onBack }) {
             <View key={project.id} style={styles.itemRow}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.itemTitle}>{project.titulo}</Text>
+                <Text style={styles.itemDescription}>{project.descripcion || 'Sin descripción'}</Text>
                 <Text style={styles.itemMeta}>Categoría: {project.categoria?.nombre || 'Sin categoría'}</Text>
-                <Text style={styles.itemMeta}>{project.fechaInicio} - {project.fechaFin}</Text>
+                <Text style={styles.itemMeta}>Inicio: {project.fechaInicio || 'Sin fecha'}</Text>
+                <Text style={styles.itemMeta}>Fin: {project.fechaFin || 'Sin fecha'}</Text>
               </View>
 
               <View style={styles.itemActions}>
@@ -231,6 +220,7 @@ export default function ProjectScreen({ token, onBack }) {
           ))
         )}
       </View>
+      </ScrollView>
     </View>
   );
 }
@@ -259,6 +249,12 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '700',
   },
+  content: {
+    flex: 1,
+  },
+  contentContainer: {
+    paddingBottom: 8,
+  },
   card: {
     backgroundColor: '#111827',
     borderRadius: 16,
@@ -266,7 +262,6 @@ const styles = StyleSheet.create({
     margin: 16,
   },
   listCard: {
-    flex: 1,
     backgroundColor: '#111827',
     borderRadius: 16,
     padding: 16,
@@ -351,6 +346,10 @@ const styles = StyleSheet.create({
   itemMeta: {
     color: '#cbd5e1',
     marginTop: 4,
+  },
+  itemDescription: {
+    color: '#e5e7eb',
+    marginTop: 6,
   },
   itemActions: {
     flexDirection: 'row',

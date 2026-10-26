@@ -11,7 +11,13 @@ import {
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 
-import { apiClient, getAuthHeaders } from '../services/api';
+import { fetchProjects } from '../services/projectService';
+import {
+  createTask,
+  deleteTask,
+  fetchTasks,
+  toggleTaskState,
+} from '../services/taskService';
 
 const emptyTask = {
   nombre: '',
@@ -28,10 +34,7 @@ export default function TaskScreen({ token, onBack }) {
 
   const loadProjects = async () => {
     try {
-      const response = await apiClient.get('/api/proyectos/lista', {
-        headers: getAuthHeaders(token),
-      });
-      const fetchedProjects = response.data || [];
+      const fetchedProjects = await fetchProjects(token);
       setProjects(fetchedProjects);
 
       if (fetchedProjects.length > 0 && !taskForm.proyectoId) {
@@ -45,10 +48,7 @@ export default function TaskScreen({ token, onBack }) {
   const loadTasks = async () => {
     setLoading(true);
     try {
-      const response = await apiClient.get('/api/tareas/lista', {
-        headers: getAuthHeaders(token),
-      });
-      setTasks(response.data || []);
+      setTasks(await fetchTasks(token));
     } catch (error) {
       Alert.alert('Error', 'No se pudieron cargar las tareas.');
     } finally {
@@ -76,16 +76,12 @@ export default function TaskScreen({ token, onBack }) {
     }
 
     try {
-      await apiClient.post(
-        '/api/tareas',
-        {
-          nombre: taskForm.nombre.trim(),
-          descripcion: taskForm.descripcion.trim(),
-          duracion: taskForm.duracion.trim(),
-          proyectoId,
-        },
-        { headers: getAuthHeaders(token) }
-      );
+      await createTask({
+        nombre: taskForm.nombre.trim(),
+        descripcion: taskForm.descripcion.trim(),
+        duracion: taskForm.duracion.trim(),
+        proyectoId,
+      }, token);
 
       Alert.alert('Éxito', 'Tarea creada correctamente.');
       setTaskForm(emptyTask);
@@ -97,13 +93,8 @@ export default function TaskScreen({ token, onBack }) {
   };
 
   const handleUpdateTaskState = async (taskId, currentState) => {
-    const nextState = currentState === 'PENDIENTE' ? 'COMPLETADO' : 'PENDIENTE';
     try {
-      await apiClient.patch(
-        '/api/tareas',
-        { id: taskId, estado: nextState },
-        { headers: getAuthHeaders(token) }
-      );
+      await toggleTaskState(taskId, currentState, token);
       loadTasks();
     } catch (error) {
       Alert.alert('Error', 'No se pudo actualizar el estado de la tarea.');
@@ -112,9 +103,7 @@ export default function TaskScreen({ token, onBack }) {
 
   const handleDeleteTask = async (taskId) => {
     try {
-      await apiClient.delete(`/api/tareas/${taskId}`, {
-        headers: getAuthHeaders(token),
-      });
+      await deleteTask(taskId, token);
       loadTasks();
     } catch (error) {
       Alert.alert('Error', 'No se pudo eliminar la tarea.');

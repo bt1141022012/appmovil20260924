@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export const API_BASE_URL = 'https://javacontrolproyectosapi2026.onrender.com';
+export const API_BASE_URL = 'https://disreputable-spooky-vampire-jj4w46wjg5pxcjv4-8080.app.github.dev';
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
