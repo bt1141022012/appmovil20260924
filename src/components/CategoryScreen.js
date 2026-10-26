@@ -8,7 +8,12 @@ import {
   View,
 } from 'react-native';
 
-import { apiClient, getAuthHeaders } from '../services/api';
+import {
+  createCategory,
+  deleteCategory,
+  fetchCategories,
+  updateCategory,
+} from '../services/categoryService';
 
 const emptyCategory = { nombre: '' };
 
@@ -19,10 +24,7 @@ export default function CategoryScreen({ token, onBack }) {
 
   const loadCategories = async () => {
     try {
-      const response = await apiClient.get('/api/categorias/lista', {
-        headers: getAuthHeaders(token),
-      });
-      setCategories(response.data || []);
+      setCategories(await fetchCategories(token));
     } catch (error) {
       Alert.alert('Error', 'No se pudieron cargar las categorías.');
     }
@@ -42,17 +44,13 @@ export default function CategoryScreen({ token, onBack }) {
 
     try {
       if (editingId) {
-        await apiClient.put(
-          `/api/categorias/${editingId}`,
+        await updateCategory(
+          editingId,
           { id: editingId, nombre: form.nombre.trim() },
-          { headers: getAuthHeaders(token) }
+          token
         );
       } else {
-        await apiClient.post(
-          '/api/categorias',
-          { nombre: form.nombre.trim() },
-          { headers: getAuthHeaders(token) }
-        );
+        await createCategory({ nombre: form.nombre.trim() }, token);
       }
 
       setForm(emptyCategory);
@@ -71,9 +69,7 @@ export default function CategoryScreen({ token, onBack }) {
 
   const handleDelete = async (categoryId) => {
     try {
-      await apiClient.delete(`/api/categorias/${categoryId}`, {
-        headers: getAuthHeaders(token),
-      });
+      await deleteCategory(categoryId, token);
       if (editingId === categoryId) {
         setEditingId(null);
         setForm(emptyCategory);

@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 
-import { apiClient } from '../services/api';
+import { loginUser } from '../services/authService';
 
 export default function LoginScreen({ onLogin }) {
   const [login, setLogin] = useState('');
@@ -25,12 +25,8 @@ export default function LoginScreen({ onLogin }) {
 
     setLoading(true);
     try {
-      const response = await apiClient.post('/api/auth/login', {
-        login: login.trim(),
-        clave: clave.trim(),
-      });
-
-      const token = response.data?.token;
+      const response = await loginUser(login.trim(), clave.trim());
+      const token = response?.token;
       if (!token) {
         throw new Error('No se recibió token');
       }

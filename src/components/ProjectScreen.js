@@ -9,7 +9,8 @@ import {
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 
-import { apiClient, getAuthHeaders } from '../services/api';
+import { fetchCategories } from '../services/categoryService';
+import { deleteProject, fetchProjects, saveProject } from '../services/projectService';
 
 const emptyProject = {
   titulo: '',
@@ -27,10 +28,7 @@ export default function ProjectScreen({ token, onBack }) {
 
   const loadCategories = async () => {
     try {
-      const response = await apiClient.get('/api/categorias/lista', {
-        headers: getAuthHeaders(token),
-      });
-      const fetchedCategories = response.data || [];
+      const fetchedCategories = await fetchCategories(token);
       setCategories(fetchedCategories);
 
       if (fetchedCategories.length > 0 && !form.categoriaId) {
@@ -43,10 +41,7 @@ export default function ProjectScreen({ token, onBack }) {
 
   const loadProjects = async () => {
     try {
-      const response = await apiClient.get('/api/proyectos/lista', {
-        headers: getAuthHeaders(token),
-      });
-      setProjects(response.data || []);
+      setProjects(await fetchProjects(token));
     } catch (error) {
       Alert.alert('Error', 'No se pudieron cargar los proyectos.');
     }
@@ -85,15 +80,7 @@ export default function ProjectScreen({ token, onBack }) {
         categoriaId,
       };
 
-      if (editingId) {
-        await apiClient.put(`/api/proyectos/${editingId}`, { id: editingId, ...payload }, {
-          headers: getAuthHeaders(token),
-        });
-      } else {
-        await apiClient.post('/api/proyectos', payload, {
-          headers: getAuthHeaders(token),
-        });
-      }
+      await saveProject(payload, editingId, token);
 
       setForm(emptyProject);
       setEditingId(null);
@@ -117,9 +104,7 @@ export default function ProjectScreen({ token, onBack }) {
 
   const handleDelete = async (projectId) => {
     try {
-      await apiClient.delete(`/api/proyectos/${projectId}`, {
-        headers: getAuthHeaders(token),
-      });
+      await deleteProject(projectId, token);
       if (editingId === projectId) {
         setEditingId(null);
         setForm(emptyProject);
