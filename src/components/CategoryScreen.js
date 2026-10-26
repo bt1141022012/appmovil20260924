@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -90,6 +91,7 @@ export default function CategoryScreen({ token, onBack }) {
         <View style={{ width: 60 }} />
       </View>
 
+      <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>{editingId ? 'Editar categoría' : 'Nueva categoría'}</Text>
 
@@ -137,6 +139,7 @@ export default function CategoryScreen({ token, onBack }) {
           ))
         )}
       </View>
+      </ScrollView>
     </View>
   );
 }
@@ -165,6 +168,12 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '700',
   },
+  content: {
+    flex: 1,
+  },
+  contentContainer: {
+    paddingBottom: 8,
+  },
   card: {
     backgroundColor: '#111827',
     borderRadius: 16,
@@ -172,7 +181,6 @@ const styles = StyleSheet.create({
     margin: 16,
   },
   listCard: {
-    flex: 1,
     backgroundColor: '#111827',
     borderRadius: 16,
     padding: 16,

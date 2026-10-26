@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -125,6 +126,7 @@ export default function ProjectScreen({ token, onBack }) {
         <View style={{ width: 60 }} />
       </View>
 
+      <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>{editingId ? 'Editar proyecto' : 'Nuevo proyecto'}</Text>
 
@@ -200,8 +202,10 @@ export default function ProjectScreen({ token, onBack }) {
             <View key={project.id} style={styles.itemRow}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.itemTitle}>{project.titulo}</Text>
+                <Text style={styles.itemDescription}>{project.descripcion || 'Sin descripción'}</Text>
                 <Text style={styles.itemMeta}>Categoría: {project.categoria?.nombre || 'Sin categoría'}</Text>
-                <Text style={styles.itemMeta}>{project.fechaInicio} - {project.fechaFin}</Text>
+                <Text style={styles.itemMeta}>Inicio: {project.fechaInicio || 'Sin fecha'}</Text>
+                <Text style={styles.itemMeta}>Fin: {project.fechaFin || 'Sin fecha'}</Text>
               </View>
 
               <View style={styles.itemActions}>
@@ -216,6 +220,7 @@ export default function ProjectScreen({ token, onBack }) {
           ))
         )}
       </View>
+      </ScrollView>
     </View>
   );
 }
@@ -244,6 +249,12 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '700',
   },
+  content: {
+    flex: 1,
+  },
+  contentContainer: {
+    paddingBottom: 8,
+  },
   card: {
     backgroundColor: '#111827',
     borderRadius: 16,
@@ -251,7 +262,6 @@ const styles = StyleSheet.create({
     margin: 16,
   },
   listCard: {
-    flex: 1,
     backgroundColor: '#111827',
     borderRadius: 16,
     padding: 16,
@@ -336,6 +346,10 @@ const styles = StyleSheet.create({
   itemMeta: {
     color: '#cbd5e1',
     marginTop: 4,
+  },
+  itemDescription: {
+    color: '#e5e7eb',
+    marginTop: 6,
   },
   itemActions: {
     flexDirection: 'row',
